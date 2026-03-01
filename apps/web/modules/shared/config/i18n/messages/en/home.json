@@ -1,0 +1,31 @@
+{
+    "home": {
+        "hero": {
+            "title": "Welcome to",
+            "subtitle": "Your trusted cannabis club. Join our community and experience premium quality products with professional service.",
+            "getStarted": "Get Started",
+            "personalCabinet": "Personal Cabinet"
+        },
+        "about": {
+            "title": "About Us",
+            "description": "Gran Kush is a premier cannabis club dedicated to providing our members with the highest quality products and exceptional service. We are committed to creating a safe, welcoming environment for all our members.",
+            "quality": {
+                "title": "Quality",
+                "description": "We source only the finest products from trusted suppliers."
+            },
+            "community": {
+                "title": "Community",
+                "description": "Join a community of like-minded individuals who share your interests."
+            },
+            "service": {
+                "title": "Service",
+                "description": "Our team is dedicated to providing exceptional customer service."
+            }
+        },
+        "cta": {
+            "title": "Ready to Get Started?",
+            "description": "Join Gran Kush today and become part of our community. Register now to get started.",
+            "button": "Register Now"
+        }
+    }
+}

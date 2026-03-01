@@ -1,0 +1,29 @@
+{
+    "name": "@workspace/api-client",
+    "version": "0.0.0",
+    "type": "module",
+    "private": true,
+    "scripts": {
+        "fetch:openapi": "node scripts/fetch-openapi.cjs",
+        "generate": "pnpm fetch:openapi && pnpm generate:local",
+        "generate:local": "npx openapi-typescript-codegen --input ./openapi.json --output ./src/generated --client axios",
+        "build": "tsc",
+        "lint": "eslint . --max-warnings 0"
+    },
+    "dependencies": {
+        "axios": "^1.7.9"
+    },
+    "devDependencies": {
+        "@types/node": "^25.1.0",
+        "@workspace/eslint-config": "workspace:*",
+        "@workspace/prettier-config": "workspace:*",
+        "@workspace/typescript-config": "workspace:*",
+        "eslint": "^9.39.2",
+        "openapi-typescript-codegen": "^0.30.0",
+        "prettier": "^3.8.1",
+        "typescript": "^5.9.3"
+    },
+    "exports": {
+        "./generated": "./src/generated/index.ts"
+    }
+}
