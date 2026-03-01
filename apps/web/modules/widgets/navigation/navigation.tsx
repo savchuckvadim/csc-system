@@ -22,12 +22,14 @@ export function Navigation({ items }: NavigationProps) {
                 {items.map((item) => {
                     const isActive = pathname === item.href;
                     return (
-                        <NavigationItem
-                            key={item.key}
-                            href={item.href}
-                            label={item.label}
-                            isActive={isActive}
-                        />
+                        <li>
+                            <NavigationItem
+                                key={item.key}
+                                href={item.href}
+                                label={item.label}
+                                isActive={isActive}
+                            />
+                        </li>
                     );
                 })}
             </ul>
