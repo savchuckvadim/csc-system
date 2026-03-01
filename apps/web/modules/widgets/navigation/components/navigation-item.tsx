@@ -2,22 +2,15 @@
 import { cn } from "@workspace/ui/lib/utils";
 import Link from "next/link";
 
-
 interface NavigationItemProps {
-
     href: string;
     label: string;
     isActive: boolean;
 }
 
-
-
 export function NavigationItem({ href, label, isActive }: NavigationItemProps) {
-
- 
-
     return (
-        <li >
+        <li>
             <Link
                 href={href}
                 className={cn(

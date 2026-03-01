@@ -1,5 +1,8 @@
 "use client";
-
+import { AuthButtons } from "./components/auth-buttons";
+import { HeaderActions } from "./components/header-actions";
+import { Logo } from "./components/logo";
+import { Navigation } from "../navigation/navigation";
 import { useTranslations } from "next-intl";
 
 import {
@@ -9,12 +12,6 @@ import {
 } from "@/modules/shared/config/i18n/types";
 import { ROUTES } from "@/modules/shared/config/routes";
 import { useLocalizedLink } from "@/modules/shared/lib/use-localized-link";
-
-import { AuthButtons } from "./components/auth-buttons";
-import { HeaderActions } from "./components/header-actions";
-import { Logo } from "./components/logo";
-import { Navigation } from "../navigation/navigation";
-
 
 export function Header() {
     const t = createTypedTranslation<NavigationTranslationKey>(useTranslations("navigation"));

@@ -14,23 +14,22 @@ interface NavigationProps {
 }
 
 export function Navigation({ items }: NavigationProps) {
-
-    const pathname = usePathname()
+    const pathname = usePathname();
 
     return (
         <nav className="hidden md:block" aria-label="Main navigation">
             <ul className="flex items-center gap-6">
                 {items.map((item) => {
-
                     const isActive = pathname === item.href;
-                    return <NavigationItem
-                        key={item.key}
-                        href={item.href}
-                        label={item.label}
-                        isActive={isActive}
-                    />
-                }
-                )}
+                    return (
+                        <NavigationItem
+                            key={item.key}
+                            href={item.href}
+                            label={item.label}
+                            isActive={isActive}
+                        />
+                    );
+                })}
             </ul>
         </nav>
     );
