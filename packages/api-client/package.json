@@ -6,9 +6,10 @@
     "scripts": {
         "fetch:openapi": "node scripts/fetch-openapi.cjs",
         "generate": "pnpm fetch:openapi && pnpm generate:local",
-        "generate:local": "npx openapi-typescript-codegen --input ./openapi.json --output ./src/generated --client axios",
+        "generate:local": "npx openapi-typescript-codegen --input ./openapi.json --output ./src/generated --client fetch",
         "build": "tsc",
-        "lint": "eslint . --max-warnings 0"
+        "lint": "eslint . --max-warnings 0",
+        "lint:fix": "eslint . --fix"
     },
     "dependencies": {
         "axios": "^1.7.9"

@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
-
-import { useTranslations } from "next-intl";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 import { Mail } from "lucide-react";
 
@@ -30,7 +29,7 @@ export default function ConfirmEmailPage() {
             console.log("Resend confirmation to:", email);
             await new Promise((resolve) => setTimeout(resolve, 1000));
             setSent(true);
-        } catch (err) {
+        } catch {
             // Handle error
         } finally {
             setLoading(false);

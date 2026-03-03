@@ -1,4 +1,4 @@
-// @ts-ignore - ogl types may not be fully typed
+// @ts-expect-error - ogl types may not be fully typed
 import { useEffect, useRef } from "react";
 
 import { Color, Geometry, Mesh, Program, Renderer } from "ogl";
@@ -72,6 +72,7 @@ export default function Iridescence({
         const gl = renderer.gl;
         gl.clearColor(1, 1, 1, 1);
 
+        // eslint-disable-next-line prefer-const -- assigned after resize closure captures it
         let program: Program;
 
         function resize() {

@@ -9,6 +9,7 @@
         "name": "Name",
         "message": "Message",
         "send": "Send Message",
+        "emailPlaceholder": "example@email.com",
         "emailValue": "info@grankush.com",
         "phoneValue": "+1 (234) 567-890",
         "addressValue": "123 Main Street\nCity, State 12345\nCountry"

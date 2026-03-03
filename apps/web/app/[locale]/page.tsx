@@ -1,13 +1,5 @@
-import { AboutSection } from "@/modules/widgets/about-section/about-section";
-import { CTASection } from "@/modules/widgets/cta-section/cta-section";
-import { HeroSection } from "@/modules/widgets/hero-section/hero-section";
+import { HomePage } from "@/modules/pages/home/home-page";
 
-export default function HomePage() {
-    return (
-        <div className="flex flex-col">
-            <HeroSection />
-            <AboutSection />
-            <CTASection />
-        </div>
-    );
+export default function HomeRoutePage() {
+    return <HomePage />;
 }

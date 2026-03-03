@@ -1,11 +1,11 @@
 import { forwardRef, HTMLAttributes, ReactNode } from "react";
 
 import {
+    Card as UICard,
     CardContent,
     CardDescription,
     CardHeader,
     CardTitle,
-    Card as UICard,
 } from "@workspace/ui/components/card";
 import { cn } from "@workspace/ui/lib/utils";
 

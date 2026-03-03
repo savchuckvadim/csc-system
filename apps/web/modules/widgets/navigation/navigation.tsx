@@ -1,16 +1,19 @@
 "use client";
-import { NavigationTranslationKey } from "@/modules/shared/config/i18n/types";
+
 import { usePathname } from "next/navigation";
+
+import { NavigationTranslationKey } from "@/modules/shared/config/i18n/types";
+
 import { NavigationItem } from "./components/navigation-item";
 
-interface NavigationItem {
+interface NavigationLinkItem {
     key: NavigationTranslationKey;
     href: string;
     label: string;
 }
 
 interface NavigationProps {
-    items: NavigationItem[];
+    items: NavigationLinkItem[];
 }
 
 export function Navigation({ items }: NavigationProps) {
@@ -19,19 +22,15 @@ export function Navigation({ items }: NavigationProps) {
     return (
         <nav className="hidden md:block" aria-label="Main navigation">
             <ul className="flex items-center gap-6">
-                {items.map((item) => {
-                    const isActive = pathname === item.href;
-                    return (
-                        <li>
-                            <NavigationItem
-                                key={item.key}
-                                href={item.href}
-                                label={item.label}
-                                isActive={isActive}
-                            />
-                        </li>
-                    );
-                })}
+                {items.map((item: NavigationLinkItem) => (
+                    <li key={item.key}>
+                        <NavigationItem
+                            href={item.href}
+                            label={item.label}
+                            isActive={pathname === item.href}
+                        />
+                    </li>
+                ))}
             </ul>
         </nav>
     );

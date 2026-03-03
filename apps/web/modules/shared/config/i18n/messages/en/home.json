@@ -8,18 +8,18 @@
         },
         "about": {
             "title": "About Us",
-            "description": "Gran Kush is a premier cannabis club dedicated to providing our members with the highest quality products and exceptional service. We are committed to creating a safe, welcoming environment for all our members.",
+            "description": "Gran Kush is a private non-profit association in central Torrevieja. We build a safe cultural space for connection, relaxation, and a responsible approach to cannabis.",
             "quality": {
-                "title": "Quality",
-                "description": "We source only the finest products from trusted suppliers."
+                "title": "Quality and responsibility",
+                "description": "We share up-to-date information about strains, harm reduction, and mindful use."
             },
             "community": {
                 "title": "Community",
-                "description": "Join a community of like-minded individuals who share your interests."
+                "description": "Regular meetups, themed evenings, and cultural events bring members together in a respectful atmosphere."
             },
             "service": {
-                "title": "Service",
-                "description": "Our team is dedicated to providing exceptional customer service."
+                "title": "Club format",
+                "description": "Access is members-only. We do not advertise or sell products."
             }
         },
         "cta": {

@@ -1,21 +1,21 @@
 "use client";
 
 import { useState } from "react";
-
-import { useTranslations } from "next-intl";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { Button } from "@workspace/ui/components/button";
 import { Field, FieldContent, FieldLabel } from "@workspace/ui/components/field";
-import { Input } from "@workspace/ui/components/input";
 
+import {
+    RegisterFormSubmitData,
+    useSubmitRegister,
+} from "@/modules/features/auth/register/hooks/submit-register.hook";
 import { ROUTES } from "@/modules/shared/config/routes";
-import { apiClient } from "@/modules/shared/lib/api";
 import { useLocalizedLink } from "@/modules/shared/lib/use-localized-link";
 import { FieldInput } from "@/modules/shared/ui/field/field";
 import { FileUpload } from "@/modules/shared/ui/file-upload/file-upload";
@@ -48,7 +48,8 @@ const registrationSchema = z
         path: ["isMedical"],
     });
 
-type RegistrationFormData = z.infer<typeof registrationSchema>;
+type RegistrationFormValues = z.input<typeof registrationSchema>;
+type RegistrationFormData = z.output<typeof registrationSchema>;
 
 export function RegistrationForm() {
     const t = useTranslations("auth.register");
@@ -61,9 +62,8 @@ export function RegistrationForm() {
         register,
         handleSubmit,
         setValue,
-        watch,
         formState: { errors, isSubmitting },
-    } = useForm<RegistrationFormData>({
+    } = useForm<RegistrationFormValues, undefined, RegistrationFormData>({
         resolver: zodResolver(registrationSchema),
         defaultValues: {
             isMedical: false,
@@ -72,41 +72,16 @@ export function RegistrationForm() {
         },
     });
 
-    const isMedical = watch("isMedical");
-    const isRecreation = watch("isRecreation");
-
-    const mutation = useMutation({
-        mutationFn: async (data: RegistrationFormData) => {
-            const formData = new FormData();
-            Object.entries(data).forEach(([key, value]) => {
-                if (value instanceof File) {
-                    formData.append(key, value);
-                } else if (typeof value === "boolean") {
-                    formData.append(key, value.toString());
-                } else if (value) {
-                    formData.append(key, value);
-                }
-            });
-            // TODO: Replace with actual API call
-            const response = await apiClient.post("/auth/register", formData, {
-                headers: { "Content-Type": "multipart/form-data" },
-            });
-            return response.data;
-        },
-        onSuccess: () => {
-            // TODO: Handle success (redirect, etc.)
-            console.log("Registration successful");
-        },
-        onError: (error) => {
-            console.error("Registration error:", error);
-        },
-    });
+    const mutation = useSubmitRegister();
 
     const onSubmit = (data: RegistrationFormData) => {
-        if (documentFirst) setValue("documentFirst", documentFirst);
-        if (documentSecond) setValue("documentSecond", documentSecond);
-        if (signature) setValue("signature", signature);
-        mutation.mutate(data);
+        const payload: RegisterFormSubmitData = {
+            ...data,
+            documentFirst: documentFirst ?? data.documentFirst,
+            documentSecond: documentSecond ?? data.documentSecond,
+            signature: signature ?? data.signature,
+        };
+        mutation.mutate(payload);
     };
 
     return (

@@ -1,6 +1,6 @@
+import { notFound } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
-import { notFound } from "next/navigation";
 
 import { locales } from "@/i18n";
 import { Footer } from "@/modules/widgets/footer/footer";
@@ -18,7 +18,7 @@ export default async function LocaleLayout({
 }) {
     const { locale } = await params;
 
-    if (!locale || !locales.includes(locale as any)) {
+    if (!locale || !locales.includes(locale as (typeof locales)[number])) {
         notFound();
     }
 
@@ -27,7 +27,7 @@ export default async function LocaleLayout({
 
     return (
         <NextIntlClientProvider locale={locale} messages={messages}>
-            <div className="flex min-h-screen flex-col">
+            <div className="flex min-h-screen min-w-full flex-col">
                 <Header />
                 <main className="">{children}</main>
                 <Footer />

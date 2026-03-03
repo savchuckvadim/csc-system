@@ -36,20 +36,21 @@ export type NavigationTranslationKey =
     | "accountSection"
     | "legalSection";
 
+type Tail<T extends readonly unknown[]> = T extends readonly [unknown, ...infer Rest]
+    ? Rest
+    : never;
+
+type BaseTranslationFn = (key: string, ...args: readonly unknown[]) => string;
+
 // Helper type for typed translation function
-export type TypedTranslation<T extends string> = (
+export type TypedTranslation<T extends string, Fn extends BaseTranslationFn> = (
     key: T,
-    values?: Record<string, string | number | Date>,
-    formats?: any
+    ...args: Tail<Parameters<Fn>>
 ) => string;
 
 // Helper function to create typed translation
-export function createTypedTranslation<T extends string>(
-    translationFn: (
-        key: string,
-        values?: Record<string, string | number | Date>,
-        formats?: any
-    ) => string
-): TypedTranslation<T> {
-    return translationFn as TypedTranslation<T>;
+export function createTypedTranslation<T extends string, Fn extends BaseTranslationFn>(
+    translationFn: Fn
+): TypedTranslation<T, Fn> {
+    return (key, ...args) => translationFn(key, ...args);
 }

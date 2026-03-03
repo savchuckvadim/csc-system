@@ -1,12 +1,11 @@
 "use client";
 
-import { useTranslations } from "next-intl";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 import { ArrowRight } from "lucide-react";
 
 import { Button } from "@workspace/ui/components/button";
-import Iridescence from "@workspace/ui/components/Iridescence";
 
 import { ROUTES } from "@/modules/shared/config/routes";
 import { useLocalizedLink } from "@/modules/shared/lib/use-localized-link";
@@ -17,12 +16,12 @@ export function HeroSection() {
     const localizedLink = useLocalizedLink();
 
     return (
-        <section className="relative flex min-h-[100vh] flex-col items-center justify-center overflow-hidden w-full -mt-16 pt-16">
+        <section className="relative  bg-primary/10 flex min-h-[100vh] flex-col items-center justify-center  w-full pt-16">
             {/* Background with border pattern like separator - diagonal grid */}
 
-            <div className="absolute inset-0 bg-none mix-blend-difference  min-h-full min-w-screen bg-background  ">
-                {/* <Iridescence color={[0.5, 1, 0.5]} speed={1.0} amplitude={0.1} mouseReact={true} /> */}
-            </div>
+            {/* <div className="absolute inset-0 bg-none mix-blend-difference  min-h-full min-w-screen bg-background  "> */}
+            {/* <Iridescence color={[0.5, 1, 0.5]} speed={1.0} amplitude={0.1} mouseReact={true} /> */}
+            {/* </div> */}
             {/* <div className="absolute inset-0 bg-gradient-to-b from-background via-background/95 to-muted"> */}
 
             {/* </div> */}

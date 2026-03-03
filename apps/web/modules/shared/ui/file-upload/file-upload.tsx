@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import Image from "next/image";
 
 import { Upload, X } from "lucide-react";
 import { useDropzone } from "react-dropzone";
@@ -83,9 +84,12 @@ export function FileUpload({
                     <div className="relative rounded-md border border-input p-4">
                         {preview ? (
                             <div className="relative">
-                                <img
+                                <Image
                                     src={preview}
                                     alt="Preview"
+                                    width={768}
+                                    height={384}
+                                    unoptimized
                                     className="max-h-48 w-full rounded-md object-contain"
                                 />
                                 <Button

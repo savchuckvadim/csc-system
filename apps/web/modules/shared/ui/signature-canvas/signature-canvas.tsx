@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTheme } from "next-themes";
 
 import { Check, X } from "lucide-react";
 import SignatureCanvas from "react-signature-canvas";
@@ -14,6 +15,7 @@ export interface SignatureCanvasProps {
     error?: boolean;
     className?: string;
     placeholder?: string;
+    penColor?: string;
 }
 
 export function SignatureCanvasField({
@@ -22,9 +24,12 @@ export function SignatureCanvasField({
     error,
     className,
     placeholder = "Your signature",
+    penColor,
 }: SignatureCanvasProps) {
     const canvasRef = useRef<SignatureCanvas>(null);
     const [isEmpty, setIsEmpty] = useState(true);
+    const { resolvedTheme } = useTheme();
+    const effectivePenColor = penColor ?? (resolvedTheme === "dark" ? "#f8fafc" : "#111827");
 
     useEffect(() => {
         if (canvasRef.current) {
@@ -55,7 +60,7 @@ export function SignatureCanvasField({
     };
 
     return (
-        <div className={cn("space-y-2", className)}>
+        <div className={cn("space-y-2 ", className)}>
             <div
                 className={cn(
                     "relative rounded-md border",
@@ -63,15 +68,21 @@ export function SignatureCanvasField({
                     "bg-background"
                 )}
             >
+                {!value && isEmpty && (
+                    <span className="pointer-events-none absolute left-3 top-3 text-sm text-muted-foreground ">
+                        {placeholder}
+                    </span>
+                )}
                 <SignatureCanvas
                     ref={canvasRef}
+                    penColor={effectivePenColor}
                     canvasProps={{
-                        className: "w-full h-48 cursor-crosshair",
+                        className: "w-full h-48 cursor-crosshair rounded-xl",
                     }}
                     onEnd={handleEnd}
                 />
                 {value && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-background/80">
+                    <div className="absolute inset-0 flex items-center justify-center bg-background/80 rounded-xl">
                         <Check className="size-8 text-green-500" />
                     </div>
                 )}
@@ -87,7 +98,7 @@ export function SignatureCanvasField({
                     <X className="mr-2 size-4" />
                     Clear
                 </Button>
-                {isEmpty && (
+                {/* {isEmpty && (
                     <Button
                         type="button"
                         variant="default"
@@ -98,7 +109,7 @@ export function SignatureCanvasField({
                         <Check className="mr-2 size-4" />
                         Save
                     </Button>
-                )}
+                )} */}
             </div>
         </div>
     );

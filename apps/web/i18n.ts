@@ -1,5 +1,5 @@
-import { getRequestConfig } from "next-intl/server";
 import { notFound } from "next/navigation";
+import { getRequestConfig } from "next-intl/server";
 
 export const locales = ["ru", "en", "es"] as const;
 export type Locale = (typeof locales)[number];
@@ -35,13 +35,14 @@ export default getRequestConfig(async ({ requestLocale }) => {
     try {
         // Load all message files
         // Используем явные пути для каждого locale, чтобы Next.js мог их статически проанализировать
-        const [common, auth, navigation, home, contacts, profile] = await Promise.all([
+        const [common, auth, navigation, home, contacts, profile, aboutUs] = await Promise.all([
             import(`./modules/shared/config/i18n/messages/${validLocale}/common.json`),
             import(`./modules/shared/config/i18n/messages/${validLocale}/auth.json`),
             import(`./modules/shared/config/i18n/messages/${validLocale}/navigation.json`),
             import(`./modules/shared/config/i18n/messages/${validLocale}/home.json`),
             import(`./modules/shared/config/i18n/messages/${validLocale}/contacts.json`),
             import(`./modules/shared/config/i18n/messages/${validLocale}/profile.json`),
+            import(`./modules/shared/config/i18n/messages/${validLocale}/about-us.json`),
         ]);
 
         return {
@@ -53,6 +54,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
                 ...home.default,
                 ...contacts.default,
                 ...profile.default,
+                ...aboutUs.default,
             },
         };
     } catch (error) {

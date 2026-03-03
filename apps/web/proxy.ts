@@ -1,7 +1,7 @@
-import createIntlMiddleware from "next-intl/middleware";
 import { NextRequest, NextResponse } from "next/server";
+import createIntlMiddleware from "next-intl/middleware";
 
-import { defaultLocale, type Locale, locales } from "./i18n";
+import { defaultLocale, locales } from "./i18n";
 
 /**
  * Определяет locale из Accept-Language header или cookie

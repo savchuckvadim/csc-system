@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+
 import { cn } from "@workspace/ui/lib/utils";
 
 interface NavigationItemProps {

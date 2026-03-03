@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-import { CommonTranslationKey, TypedTranslation } from "@/modules/shared/config/i18n/types";
 import { ROUTES } from "@/modules/shared/config/routes";
 import { useLocalizedLink } from "@/modules/shared/lib/use-localized-link";
 
