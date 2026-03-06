@@ -1,5 +1,6 @@
 import {
     ApiError,
+    type ApiErrorResponseDto,
     EmployeeAuthenticationCrmService,
     OpenAPI,
     type EmployeeRefreshTokenResponseDto,
@@ -11,6 +12,25 @@ const REFRESH_TOKEN_KEY = "crm.refreshToken";
 
 let isConfigured = false;
 let refreshPromise: Promise<string | null> | null = null;
+
+type ApiErrorPayload = ApiErrorResponseDto & {
+    statusCode?: number;
+};
+
+export class CrmApiError extends Error {
+    constructor(
+        public readonly status: number,
+        message: string,
+        public readonly payload?: ApiErrorPayload
+    ) {
+        super(message);
+        this.name = "CrmApiError";
+    }
+}
+
+export function isCrmApiError(error: unknown): error is CrmApiError {
+    return error instanceof CrmApiError;
+}
 
 function canUseBrowserStorage(): boolean {
     return typeof window !== "undefined";
@@ -196,7 +216,22 @@ export async function apiFetchJsonWithRefresh<T>(path: string, init?: RequestIni
     }
 
     if (!response.ok) {
-        throw new Error(`Request failed: ${response.status}`);
+        let payload: ApiErrorPayload | undefined;
+        try {
+            payload = (await response.json()) as ApiErrorPayload;
+        } catch {
+            payload = undefined;
+        }
+
+        const messageFromPayload = Array.isArray(payload?.message)
+            ? payload.message.join(", ")
+            : payload?.message;
+
+        throw new CrmApiError(
+            response.status,
+            messageFromPayload || `Request failed: ${response.status}`,
+            payload
+        );
     }
 
     return (await response.json()) as T;

@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { Pencil } from "lucide-react";
 
 import { Button } from "@workspace/ui";
 
-import { MemberProfileEditor } from "@/modules/features/members/member-profile-editor";
+import { ThemedSignatureImage } from "@/modules/entities/member/ui/themed-signature-image";
+import { MemberProfileEditModal } from "@/modules/features/members/member-profile-edit-modal";
 import {
     getCrmMemberById,
     getIdentityDocumentPreviewUrl,
@@ -62,7 +64,10 @@ export default async function CrmMemberDetailsPage({
 
             <div className="grid gap-4 lg:grid-cols-3">
                 <section className="rounded-lg border bg-background p-4">
-                    <h2 className="mb-3 text-base font-medium">{t("profileTitle")}</h2>
+                    <div className="mb-3 flex items-center justify-between gap-2">
+                        <h2 className="text-base font-medium">{t("profileTitle")}</h2>
+                        <MemberProfileEditModal member={member} />
+                    </div>
                     <dl className="space-y-2 text-sm">
                         <div className="flex justify-between gap-4">
                             <dt className="text-muted-foreground">{t("memberId")}</dt>
@@ -102,48 +107,61 @@ export default async function CrmMemberDetailsPage({
                 <section className="rounded-lg border bg-background p-4">
                     <h2 className="mb-3 text-base font-medium">{t("notesTitle")}</h2>
                     <p className="text-sm text-muted-foreground">{member.notes ?? t("noNotes")}</p>
-                    <div className="mt-4">
-                        <Button variant="outline" size="sm" asChild>
-                            <Link href={`/${locale}/crm/members/${member.id}/documents`}>
-                                {t("openDocumentsRoute")}
-                            </Link>
-                        </Button>
-                    </div>
                 </section>
             </div>
 
             <section className="rounded-lg border bg-background p-4">
-                <h2 className="mb-3 text-base font-medium">{t("documents")}</h2>
+                <div className="mb-3 flex items-center justify-between gap-2">
+                    <h2 className="text-base font-medium">{t("documents")}</h2>
+                    <Button variant="outline" size="sm" asChild>
+                        <Link href={`/${locale}/crm/members/${member.id}/documents`}>
+                            <span className="inline-flex items-center gap-2">
+                                <Pencil className="h-4 w-4" />
+                                {t("openDocumentsRoute")}
+                            </span>
+                        </Link>
+                    </Button>
+                </div>
                 {member.identityDocuments.length > 0 && (
-                    <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+                    <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                         {member.identityDocuments.map((doc) => (
                             <Link
                                 key={doc.id}
                                 href={`/${locale}/crm/members/${member.id}/documents/${doc.id}`}
-                                className="overflow-hidden rounded-md border bg-muted/30"
+                                className="group overflow-hidden rounded-md border bg-muted/30"
                             >
-                                <img
-                                    src={getIdentityDocumentPreviewUrl(member.id, doc.id)}
-                                    alt={`${doc.type}-${doc.side}`}
-                                    className="h-24 w-full object-cover"
-                                />
+                                <div className="flex h-40 w-full items-center justify-center bg-muted/30 p-2">
+                                    <img
+                                        src={getIdentityDocumentPreviewUrl(member.id, doc.id)}
+                                        alt={`${doc.type}-${doc.side}`}
+                                        className="h-full w-full object-contain"
+                                    />
+                                </div>
+                                <div className="border-t px-2 py-1 text-xs text-muted-foreground">
+                                    {doc.type} · {doc.side}
+                                </div>
                             </Link>
                         ))}
                         {member.signature && (
                             <Link
                                 href={`/${locale}/crm/members/${member.id}/documents/signature`}
-                                className="overflow-hidden rounded-md border bg-muted/30"
+                                className="group overflow-hidden rounded-md border bg-muted/30"
                             >
-                                <img
-                                    src={getSignaturePreviewUrl(member.id)}
-                                    alt="signature"
-                                    className="h-24 w-full object-cover"
-                                />
+                                <div className="flex h-40 w-full items-center justify-center bg-muted/30 p-2">
+                                    <ThemedSignatureImage
+                                        src={getSignaturePreviewUrl(member.id)}
+                                        alt="signature"
+                                        className="h-full w-full object-contain"
+                                    />
+                                </div>
+                                <div className="border-t px-2 py-1 text-xs text-muted-foreground">
+                                    {t("signatureTitle")}
+                                </div>
                             </Link>
                         )}
                     </div>
                 )}
-                <div className="space-y-2 text-sm">
+                {/* <div className="space-y-2 text-sm">
                     {member.documents.length > 0 ? (
                         member.documents.map((doc) => (
                             <div
@@ -159,10 +177,8 @@ export default async function CrmMemberDetailsPage({
                     ) : (
                         <p className="text-muted-foreground">{t("noDocumentMetadata")}</p>
                     )}
-                </div>
+                </div> */}
             </section>
-
-            <MemberProfileEditor member={member} />
         </div>
     );
 }

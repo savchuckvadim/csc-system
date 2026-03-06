@@ -47,7 +47,36 @@ export function SignatureCanvasField({
 
     const handleSave = () => {
         if (canvasRef.current && !canvasRef.current.isEmpty()) {
-            const dataURL = canvasRef.current.getTrimmedCanvas().toDataURL("image/png");
+            const trimmedCanvas = canvasRef.current.getTrimmedCanvas();
+            const width = trimmedCanvas.width;
+            const height = trimmedCanvas.height;
+            const sourceContext = trimmedCanvas.getContext("2d");
+            const normalizedCanvas = document.createElement("canvas");
+            normalizedCanvas.width = width;
+            normalizedCanvas.height = height;
+            const normalizedContext = normalizedCanvas.getContext("2d");
+
+            if (!sourceContext || !normalizedContext) {
+                return;
+            }
+
+            const sourceData = sourceContext.getImageData(0, 0, width, height);
+            const normalizedData = normalizedContext.createImageData(width, height);
+
+            for (let i = 0; i < sourceData.data.length; i += 4) {
+                const alpha = sourceData.data[i + 3] ?? 0;
+                const hasStroke = alpha > 0;
+
+                // Store signature in canonical format independent from UI theme:
+                // black strokes with transparent background.
+                normalizedData.data[i] = 0;
+                normalizedData.data[i + 1] = 0;
+                normalizedData.data[i + 2] = 0;
+                normalizedData.data[i + 3] = hasStroke ? alpha : 0;
+            }
+
+            normalizedContext.putImageData(normalizedData, 0, 0);
+            const dataURL = normalizedCanvas.toDataURL("image/png");
             setIsEmpty(false);
             onChange?.(dataURL);
         }

@@ -4,6 +4,8 @@ import { getTranslations } from "next-intl/server";
 
 import { Button } from "@workspace/ui";
 
+import { ThemedSignatureImage } from "@/modules/entities/member/ui/themed-signature-image";
+import { MemberDocumentEditModal } from "@/modules/features/members/member-document-edit-modal";
 import {
     getCrmMemberById,
     getIdentityDocumentPreviewUrl,
@@ -29,7 +31,13 @@ export default async function CrmMemberDocumentsPage({
                 <div>
                     <h1 className="text-2xl font-semibold">{t("documentsRouteTitle")}</h1>
                     <p className="text-sm text-muted-foreground">
-                        {member.name} {member.surname ?? ""} · {member.email}
+                        <Link
+                            href={`/${locale}/crm/members/${memberId}`}
+                            className="font-medium text-foreground hover:underline"
+                        >
+                            {member.name} {member.surname ?? ""}
+                        </Link>{" "}
+                        · {member.email}
                     </p>
                 </div>
                 <Button variant="outline" asChild>
@@ -38,73 +46,92 @@ export default async function CrmMemberDocumentsPage({
             </div>
 
             <section className="rounded-lg border bg-background p-4">
-                <h2 className="mb-3 text-base font-medium">{t("identityDocuments")}</h2>
-                <div className="space-y-2 text-sm">
-                    {member.identityDocuments.length > 0 ? (
-                        member.identityDocuments.map((doc) => (
-                            <div
-                                key={doc.id}
-                                className="rounded-md border p-3"
-                            >
+                <h2 className="mb-3 text-base font-medium">{t("documents")}</h2>
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                    {member.identityDocuments.map((doc) => (
+                        <div key={doc.id} className="overflow-hidden rounded-md border">
+                            <div className="flex h-44 items-center justify-center bg-muted/30 p-2">
+                                <img
+                                    src={getIdentityDocumentPreviewUrl(memberId, doc.id)}
+                                    alt={`${doc.type}-${doc.side}`}
+                                    className="h-full w-full object-contain"
+                                />
+                            </div>
+                            <div className="space-y-1 p-3 text-sm">
                                 <div className="flex items-center justify-between gap-3">
                                     <span className="font-medium">
                                         {doc.type} · {doc.side}
                                     </span>
                                     <span className="text-xs text-muted-foreground">{doc.id}</span>
                                 </div>
-                                <p className="mt-2 break-all text-xs text-muted-foreground">
-                                    {t("storagePath")}: {doc.storagePath}
-                                </p>
-                                <p className="mt-1 text-xs text-muted-foreground">
+                                <p className="text-xs text-muted-foreground">
                                     {t("uploadedAt")}: {new Date(doc.createdAt).toLocaleString()}
                                 </p>
-                                <div className="mt-3 flex gap-2">
-                                    <Button size="sm" variant="outline" asChild>
-                                        <Link href={`/${locale}/crm/members/${memberId}/documents/${doc.id}`}>
-                                            {t("openDocument")}
-                                        </Link>
-                                    </Button>
-                                    <Button size="sm" variant="outline" asChild>
-                                        <a href={getIdentityDocumentPreviewUrl(memberId, doc.id)} target="_blank">
-                                            {t("openInNewTab")}
-                                        </a>
-                                    </Button>
-                                </div>
                             </div>
-                        ))
+                            <div className="flex flex-wrap gap-2 border-t p-3">
+                                <Button size="sm" variant="outline" asChild>
+                                    <Link href={`/${locale}/crm/members/${memberId}/documents/${doc.id}`}>
+                                        {t("openDocument")}
+                                    </Link>
+                                </Button>
+                                <Button size="sm" variant="outline" asChild>
+                                    <a href={getIdentityDocumentPreviewUrl(memberId, doc.id)} download>
+                                        {t("downloadDocument")}
+                                    </a>
+                                </Button>
+                                <MemberDocumentEditModal
+                                    memberId={memberId}
+                                    isSignature={false}
+                                    side={doc.side === "second" ? "second" : "first"}
+                                    initialDocumentType={doc.type}
+                                    currentPreviewUrl={getIdentityDocumentPreviewUrl(memberId, doc.id)}
+                                />
+                            </div>
+                        </div>
+                    ))}
+
+                    {member.signature ? (
+                        <div className="overflow-hidden rounded-md border">
+                            <div className="flex h-44 items-center justify-center bg-muted/30 p-2">
+                                <ThemedSignatureImage
+                                    src={getSignaturePreviewUrl(memberId)}
+                                    alt="signature"
+                                    className="h-20 w-full object-contain"
+                                />
+                            </div>
+                            <div className="space-y-1 p-3 text-sm">
+                                <div className="flex items-center justify-between gap-3">
+                                    <span className="font-medium">{t("signatureTitle")}</span>
+                                    <span className="text-xs text-muted-foreground">{member.signature.id}</span>
+                                </div>
+                                <p className="text-xs text-muted-foreground">
+                                    {t("uploadedAt")}: {new Date(member.signature.createdAt).toLocaleString()}
+                                </p>
+                            </div>
+                            <div className="flex flex-wrap gap-2 border-t p-3">
+                                <Button size="sm" variant="outline" asChild>
+                                    <Link href={`/${locale}/crm/members/${memberId}/documents/signature`}>
+                                        {t("openDocument")}
+                                    </Link>
+                                </Button>
+                                <Button size="sm" variant="outline" asChild>
+                                    <a href={getSignaturePreviewUrl(memberId)} download>
+                                        {t("downloadDocument")}
+                                    </a>
+                                </Button>
+                                <MemberDocumentEditModal
+                                    memberId={memberId}
+                                    isSignature
+                                    currentPreviewUrl={getSignaturePreviewUrl(memberId)}
+                                />
+                            </div>
+                        </div>
                     ) : (
-                        <p className="text-muted-foreground">{t("noIdentityDocuments")}</p>
+                        <div className="rounded-md border p-3 text-sm text-muted-foreground">
+                            {t("noSignature")}
+                        </div>
                     )}
                 </div>
-            </section>
-
-            <section className="rounded-lg border bg-background p-4">
-                <h2 className="mb-3 text-base font-medium">{t("signatureTitle")}</h2>
-                {member.signature ? (
-                    <div className="rounded-md border p-3 text-sm">
-                        <p className="text-xs text-muted-foreground">{member.signature.id}</p>
-                        <p className="mt-2 break-all text-xs text-muted-foreground">
-                            {t("storagePath")}: {member.signature.storagePath}
-                        </p>
-                        <p className="mt-1 text-xs text-muted-foreground">
-                            {t("uploadedAt")}: {new Date(member.signature.createdAt).toLocaleString()}
-                        </p>
-                        <div className="mt-3 flex gap-2">
-                            <Button size="sm" variant="outline" asChild>
-                                <Link href={`/${locale}/crm/members/${memberId}/documents/signature`}>
-                                    {t("openDocument")}
-                                </Link>
-                            </Button>
-                            <Button size="sm" variant="outline" asChild>
-                                <a href={getSignaturePreviewUrl(memberId)} target="_blank">
-                                    {t("openInNewTab")}
-                                </a>
-                            </Button>
-                        </div>
-                    </div>
-                ) : (
-                    <p className="text-sm text-muted-foreground">{t("noSignature")}</p>
-                )}
             </section>
         </div>
     );
