@@ -234,11 +234,11 @@ Located in `packages/ui/src/components/`:
 
 ```typescript
 // From shared UI (wrappers)
-import { Card } from "@/modules/shared/ui/card/card";
-import { FieldInput } from "@/modules/shared/ui/field/field";
+import { Card } from "@workspace/ui/shared/card/card";
+import { FieldInput } from "@workspace/ui/shared/field/field";
 
-// From base UI package
-import { Button } from "@workspace/ui/components/button";
+// From package root (preferred)
+import { Button } from "@workspace/ui";
 ```
 
 ## API Integration

@@ -1,6 +1,4 @@
-import { Button } from "@workspace/ui/components/button";
-
-import { FieldInput } from "@/modules/shared/ui/field/field";
+import { Button, FieldInput } from "@workspace/ui";
 
 import { ContactsFormContent } from "../types";
 

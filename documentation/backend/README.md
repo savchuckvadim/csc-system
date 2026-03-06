@@ -99,11 +99,11 @@ module-name/
   - Relations: `IdentityDocument[]`, `Signature`, `MemberMjStatus[]`, `MemberDocument[]`
 
 **API Endpoints**:
-- `POST /members/register` - Register new member
-- `GET /members/profile` - Get member profile (authenticated)
-- `PATCH /members/profile` - Update member profile
-- `POST /members/documents` - Upload document
-- `POST /members/signature` - Upload signature
+- `POST /lk/auth/member/check` - Check if user exists for member registration
+- `POST /lk/auth/member/register` - Register new member account (without blocking file uploads)
+- `POST /lk/auth/member/files` - Queue private documents/signature upload (BullMQ)
+- `POST /lk/auth/login` - Member login
+- `POST /lk/auth/refresh` - Refresh member token
 
 **Repositories**:
 - `MembersRepository`
@@ -269,7 +269,7 @@ module-name/
 
 **Queues**:
 - `mail` - Email sending queue
-- Future queues for file processing, notifications, etc.
+- `member-files` - Async member documents/signature processing queue
 
 ### Redis Module
 
@@ -504,6 +504,7 @@ For detailed information about each module, see:
 
 - [Authentication System](../AUTHENTICATION.md)
 - [Storage Module](../STORAGE.md)
+- [Module Development Principles](./MODULE_DEVELOPMENT_PRINCIPLES.md)
 - [Site Documentation](../site/README.md) - Frontend integration
 - [CRM Documentation](../crm/README.md) - CRM system
 

@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 
 import { LogOut, Settings, User } from "lucide-react";
 
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@workspace/ui";
 
 import { ROUTES } from "@/modules/shared/config/routes";
 import { useLocalizedLink } from "@/modules/shared/lib/use-localized-link";

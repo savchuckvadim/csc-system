@@ -88,16 +88,16 @@
 4. Создаются связи:
    - `MemberMjStatus` через `MemberMjStatusRepository` (для статусов isMedical, isMj, isRecreation)
    - `MemberDocument` через `MemberDocumentRepository` (для documentType и documentNumber)
-   - `IdentityDocument` через Prisma (для documentFirst и documentSecond)
-   - `Signature` через Prisma (для signature)
 5. Генерируются токены через `MemberAuthService.generateTokens()`
 6. Refresh token сохраняется в БД в таблицу `tokens`
+7. В ответ возвращается `memberId` для последующей загрузки файлов
 
 **Ответ:**
 ```json
 {
   "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "memberId": "member_id",
   "user": {
     "id": "user_id",
     "email": "user@example.com"
@@ -106,6 +106,43 @@
     "message": "You are already registered as an Employee...",
     "hasEmployee": true
   }
+}
+```
+
+#### Шаг 3: Асинхронная загрузка документов и подписи
+
+**POST** `/lk/auth/member/files`
+
+**Headers:**
+```
+Authorization: Bearer {accessToken}
+```
+
+**Body (JSON):**
+```json
+{
+  "documentType": "passport",
+  "documentFirst": "data:image/png;base64,...",
+  "documentSecond": "data:image/png;base64,...",
+  "signature": "data:image/png;base64,..."
+}
+```
+
+**Процесс:**
+1. Контроллер валидирует payload и добавляет задачу в очередь `member-files` (BullMQ)
+2. `MemberFilesProcessor` в фоне:
+   - декодирует data URL в `Buffer`
+   - сохраняет файлы в `StorageService` с `StorageType.PRIVATE`
+   - записывает в БД только `storagePath` (относительный путь), а не base64
+3. Для повторной отправки используется upsert:
+   - `IdentityDocument` по ключу `(memberId, type, side)`
+   - `Signature` по ключу `memberId`
+
+**Ответ:**
+```json
+{
+  "queued": true,
+  "jobId": "214"
 }
 ```
 
