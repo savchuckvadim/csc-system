@@ -33,17 +33,13 @@ apps/web/
 ├── modules/               # Feature modules (FSD)
 │   ├── shared/            # Shared resources
 │   │   ├── config/        # Configuration (routes, i18n)
-│   │   ├── lib/           # Utilities (API client, hooks)
-│   │   └── ui/            # UI component wrappers
+│   │   └── lib/           # Utilities (hooks, helpers)
 │   ├── features/          # Feature modules
 │   │   ├── auth/          # Authentication features
 │   │   └── lang-switcher/ # Language switcher
-│   └── widgets/           # Composite widgets
-│       ├── header/        # Site header
-│       ├── footer/        # Site footer
-│       ├── hero-section/  # Hero section
-│       ├── about-section/ # About section
-│       └── cta-section/  # CTA section
+│   ├── pages/             # Page-level composition blocks
+│   └── widgets/           # Composite widgets (layout/sections)
+├── packages/ui            # Shared UI package (workspace)
 ├── proxy.ts              # Next.js 16 proxy (locale routing)
 └── i18n.ts               # next-intl configuration
 ```
@@ -213,32 +209,18 @@ Personal dashboard for registered club members.
 
 ### Shared UI Components
 
-Located in `modules/shared/ui/`:
-
-- **Card** - Wrapper for shadcn/ui Card
-- **Field** - Form field wrapper
-- **FieldInput** - Input field component
-- **SignatureCanvasField** - Signature capture component
-- **FileUpload** - File upload component
-
-### Base UI Components
-
-Located in `packages/ui/src/components/`:
+Located in `@workspace/ui` and `@workspace/ui/shared`:
 
 - Button, Input, Card (shadcn/ui)
 - ThemeToggle
 - Separator
 - Iridescence (animated background)
 
-### Component Usage
+### Component Usage (Current)
 
 ```typescript
-// From shared UI (wrappers)
-import { Card } from "@workspace/ui/shared/card/card";
-import { FieldInput } from "@workspace/ui/shared/field/field";
-
-// From package root (preferred)
-import { Button } from "@workspace/ui";
+import { Button, Card, FieldInput } from "@workspace/ui";
+import { FileUpload, SignatureCanvasField } from "@workspace/ui/shared";
 ```
 
 ## API Integration
@@ -255,11 +237,11 @@ Auto-generated TypeScript client from OpenAPI spec:
 
 ```typescript
 import { useQuery } from "@tanstack/react-query";
-import { MembersApi } from "@workspace/api-client";
+import { MemberAuthenticationSiteService } from "@workspace/api-client/generated";
 
 const { data } = useQuery({
   queryKey: ["member", "profile"],
-  queryFn: () => MembersApi.getMemberProfile(),
+  queryFn: () => MemberAuthenticationSiteService.membersAuthGetMe(),
 });
 ```
 
@@ -268,7 +250,7 @@ const { data } = useQuery({
 - Base URL from environment variables
 - Automatic token injection
 - Error handling
-- Request/response interceptors
+- Refresh retry handled by app-level helper around generated fetch client
 
 ## Styling
 

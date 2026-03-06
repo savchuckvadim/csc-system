@@ -1,13 +1,41 @@
-import { ConflictException, Injectable } from "@nestjs/common";
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 
 import { RegisterMemberDto } from "@members/api/dto/register-member.dto";
 import { DocumentRepository } from "@members/domain/repositories/document-repository.interface";
+import { IdentityDocumentRepository } from "@members/domain/repositories/identity-document-repository.interface";
 import { MemberDocumentRepository } from "@members/domain/repositories/member-document-repository.interface";
 import { MemberMjStatusRepository } from "@members/domain/repositories/member-mj-status-repository.interface";
 import { MemberRepository } from "@members/domain/repositories/member-repository.interface";
 import { MjStatusRepository } from "@members/domain/repositories/mj-status-repository.interface";
+import { SignatureRepository } from "@members/domain/repositories/signature-repository.interface";
 import { UserRepository } from "@users/domain/repositories/user-repository.interface";
 import { hash } from "bcrypt";
+
+import { StorageService } from "@modules/storage";
+import { StorageType } from "@storage/domain/enums/storage-type.enum";
+
+interface UpdateCrmMemberDto {
+    name?: string;
+    surname?: string;
+    phone?: string;
+    birthday?: string;
+    membershipNumber?: string;
+    address?: string;
+    status?: string;
+    notes?: string;
+    isMedical?: boolean;
+    isMj?: boolean;
+    isRecreation?: boolean;
+    documentType?: string;
+    documentNumber?: string;
+}
+
+interface UpdateCrmMemberFilesDto {
+    documentType?: string;
+    documentFirst?: string;
+    documentSecond?: string;
+    signature?: string;
+}
 
 @Injectable()
 export class MembersService {
@@ -17,7 +45,10 @@ export class MembersService {
         private readonly mjStatusRepository: MjStatusRepository,
         private readonly memberMjStatusRepository: MemberMjStatusRepository,
         private readonly documentRepository: DocumentRepository,
-        private readonly memberDocumentRepository: MemberDocumentRepository
+        private readonly memberDocumentRepository: MemberDocumentRepository,
+        private readonly identityDocumentRepository: IdentityDocumentRepository,
+        private readonly signatureRepository: SignatureRepository,
+        private readonly storageService: StorageService
     ) {}
 
     private async hashPassword(password: string): Promise<string> {
@@ -201,5 +232,130 @@ export class MembersService {
      */
     async findByUserId(userId: string) {
         return this.memberRepository.findByUserId(userId);
+    }
+
+    async findById(id: string) {
+        return this.memberRepository.findById(id);
+    }
+
+    async findAll(limit?: number) {
+        return this.memberRepository.findAll(limit);
+    }
+
+    async updateCrmMember(memberId: string, dto: UpdateCrmMemberDto) {
+        const member = await this.memberRepository.findById(memberId);
+        if (!member) {
+            throw new NotFoundException("Member not found");
+        }
+
+        const updatePayload: Partial<{
+            name: string;
+            surname: string;
+            phone: string;
+            birthday: Date;
+            membershipNumber: string;
+            address: string;
+            status: string;
+            notes: string;
+            isActive: boolean;
+        }> = {};
+
+        if (dto.name !== undefined) updatePayload.name = dto.name;
+        if (dto.surname !== undefined) updatePayload.surname = dto.surname;
+        if (dto.phone !== undefined) updatePayload.phone = dto.phone;
+        if (dto.birthday !== undefined && dto.birthday) updatePayload.birthday = new Date(dto.birthday);
+        if (dto.membershipNumber !== undefined) updatePayload.membershipNumber = dto.membershipNumber;
+        if (dto.address !== undefined) updatePayload.address = dto.address;
+        if (dto.status !== undefined) updatePayload.status = dto.status;
+        if (dto.notes !== undefined) updatePayload.notes = dto.notes;
+
+        if (Object.keys(updatePayload).length > 0) {
+            await this.memberRepository.update(memberId, updatePayload);
+        }
+
+        const hasMjUpdate =
+            dto.isMedical !== undefined || dto.isMj !== undefined || dto.isRecreation !== undefined;
+
+        if (hasMjUpdate) {
+            await this.memberMjStatusRepository.deleteByMemberId(memberId);
+            await this.createMjStatuses(memberId, {
+                isMedical: dto.isMedical ?? false,
+                isMj: dto.isMj ?? false,
+                isRecreation: dto.isRecreation ?? false,
+            } as RegisterMemberDto);
+        }
+
+        if (dto.documentType && dto.documentNumber) {
+            await this.memberDocumentRepository.deleteByMemberId(memberId);
+            await this.createDocument(memberId, dto.documentType, dto.documentNumber);
+        }
+
+        return this.memberRepository.findById(memberId);
+    }
+
+    async updateCrmMemberFiles(memberId: string, dto: UpdateCrmMemberFilesDto) {
+        const member = await this.memberRepository.findById(memberId);
+        if (!member) {
+            throw new NotFoundException("Member not found");
+        }
+
+        const documentType = dto.documentType ?? member.memberDocuments[0]?.document.type ?? "passport";
+
+        if (dto.documentFirst) {
+            const firstPath = await this.savePrivateDataUrl(
+                dto.documentFirst,
+                `identity-first-${documentType}.png`,
+                memberId
+            );
+            await this.identityDocumentRepository.upsertByMemberTypeAndSide({
+                memberId,
+                type: documentType,
+                side: "first",
+                storagePath: firstPath,
+            });
+        }
+
+        if (dto.documentSecond) {
+            const secondPath = await this.savePrivateDataUrl(
+                dto.documentSecond,
+                `identity-second-${documentType}.png`,
+                memberId
+            );
+            await this.identityDocumentRepository.upsertByMemberTypeAndSide({
+                memberId,
+                type: documentType,
+                side: "second",
+                storagePath: secondPath,
+            });
+        }
+
+        if (dto.signature) {
+            const signaturePath = await this.savePrivateDataUrl(dto.signature, "signature.png", memberId);
+            await this.signatureRepository.upsertByMemberId(memberId, { storagePath: signaturePath });
+        }
+
+        return this.memberRepository.findById(memberId);
+    }
+
+    private async savePrivateDataUrl(dataUrl: string, fileName: string, memberId: string): Promise<string> {
+        const dataUrlMatch = dataUrl.match(/^data:(?<mime>[-\w./+]+);base64,(?<payload>.+)$/);
+
+        if (!dataUrlMatch?.groups?.payload || !dataUrlMatch.groups.mime) {
+            throw new BadRequestException("Invalid data URL format");
+        }
+
+        const buffer = Buffer.from(dataUrlMatch.groups.payload, "base64");
+
+        const uploaded = await this.storageService.uploadFile(
+            {
+                buffer,
+                originalname: fileName,
+                mimetype: dataUrlMatch.groups.mime,
+            },
+            `members/${memberId}`,
+            StorageType.PRIVATE
+        );
+
+        return uploaded.relativePath;
     }
 }

@@ -131,10 +131,11 @@ module-name/
   - Status: `isActive`, `lastLoginAt`
 
 **API Endpoints**:
-- `POST /employees/register` - Register employee
-- `GET /employees/profile` - Get employee profile
-- `GET /employees` - List employees (admin only)
-- `PATCH /employees/:id` - Update employee
+- `POST /crm/auth/employee/register` - Register employee (bootstrap/invite flow)
+- `POST /crm/auth/login` - Employee login
+- `POST /crm/auth/refresh` - Refresh employee access token
+- `POST /crm/auth/logout` - Employee logout
+- `GET /crm/auth/me` - Current employee profile
 
 **Repositories**:
 - `EmployeesRepository`
@@ -166,11 +167,11 @@ module-name/
    - Role-based access (employee, manager, admin)
 
 **API Endpoints**:
-- `POST /auth/member/login` - Member login
-- `POST /auth/member/register` - Member registration
-- `POST /auth/member/refresh` - Refresh member token
-- `POST /auth/employee/login` - Employee login
-- `POST /auth/employee/refresh` - Refresh employee token
+- `POST /lk/auth/login` - Member login
+- `POST /lk/auth/member/register` - Member registration
+- `POST /lk/auth/refresh` - Refresh member token
+- `POST /crm/auth/login` - Employee login
+- `POST /crm/auth/refresh` - Refresh employee token
 - `POST /auth/password/reset` - Request password reset
 - `POST /auth/password/reset/confirm` - Confirm password reset
 
@@ -322,13 +323,13 @@ module-name/
 The system implements two completely separate authentication flows:
 
 1. **Member Authentication**:
-   - Endpoints: `/auth/member/*`
+   - Endpoints: `/lk/auth/*`
    - Tokens: Stored in `tokens` table
    - Guards: `MemberAuthGuard`
    - Strategy: `MemberJwtStrategy`
 
 2. **Employee Authentication**:
-   - Endpoints: `/auth/employee/*`
+   - Endpoints: `/crm/auth/*`
    - Tokens: Stored in `employee_tokens` table
    - Guards: `EmployeeAuthGuard`, `AdminGuard`
    - Strategy: `EmployeeJwtStrategy`
@@ -361,9 +362,9 @@ The system implements two completely separate authentication flows:
 
 **Current Queues**:
 - `mail` - Email sending
+- `member-files` - Async member documents/signature processing
 
 **Future Queues**:
-- File processing
 - Notification sending
 - Report generation
 - Data synchronization
@@ -471,7 +472,42 @@ cd apps/api
 pnpm install
 pnpm prisma migrate dev
 pnpm prisma generate
+pnpm prisma:seed:admin
 pnpm dev
+```
+
+### Bootstrap Root Admin (CRM)
+
+Use env variables in backend `.env`:
+
+```env
+BOOTSTRAP_ADMIN_ENABLED=true
+BOOTSTRAP_ADMIN_EMAIL=admin@company.com
+BOOTSTRAP_ADMIN_PASSWORD=ChangeMe_StrongPassword
+BOOTSTRAP_ADMIN_NAME=Root
+BOOTSTRAP_ADMIN_FORCE_PASSWORD_RESET=false
+```
+
+Optional fields:
+- `BOOTSTRAP_ADMIN_SURNAME`
+- `BOOTSTRAP_ADMIN_PHONE`
+- `BOOTSTRAP_ADMIN_POSITION`
+- `BOOTSTRAP_ADMIN_DEPARTMENT`
+
+How it works:
+- `BOOTSTRAP_ADMIN_ENABLED=true` means seed is allowed to create/update bootstrap admin.
+- Seed is idempotent: it upserts `User` by email and `Employee` by `userId`.
+- `Employee.role` is always set to `admin`.
+- If `BOOTSTRAP_ADMIN_FORCE_PASSWORD_RESET=true`, password hash is updated on existing user.
+
+Commands:
+
+```bash
+# Run only bootstrap-admin seed (without migration)
+pnpm prisma:seed:admin
+
+# Prisma standard seed command (uses the same seed script)
+pnpm prisma:seed
 ```
 
 ### Database Migrations
@@ -490,13 +526,16 @@ pnpm prisma generate
 ### Environment Variables
 
 Required environment variables:
-- `DATABASE_URL` - MySQL connection string
+- `DATABASE_URL` - PostgreSQL connection string
 - `REDIS_URL` - Redis connection string
 - `JWT_SECRET` - JWT signing secret
 - `JWT_REFRESH_SECRET` - JWT refresh secret
 - `MAIL_HOST` - SMTP host
 - `MAIL_USER` - SMTP user
 - `MAIL_PASS` - SMTP password
+- `BOOTSTRAP_ADMIN_ENABLED` - enable/disable root-admin bootstrap seed
+- `BOOTSTRAP_ADMIN_EMAIL` - root admin email
+- `BOOTSTRAP_ADMIN_PASSWORD` - root admin password
 
 ## Module Details
 

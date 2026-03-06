@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-export default async function HomePage({
+export default async function CrmHomePage({
     params,
 }: {
     params: Promise<{ locale: string }>;

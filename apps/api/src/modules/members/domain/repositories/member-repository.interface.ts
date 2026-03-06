@@ -1,6 +1,7 @@
 import { MemberWithRelations } from "@modules/members/domain/entity/member.entity";
 
 export abstract class MemberRepository {
+    abstract findAll(limit?: number): Promise<MemberWithRelations[]>;
     abstract findById(id: string): Promise<MemberWithRelations | null>;
     abstract findByUserId(userId: string): Promise<MemberWithRelations | null>;
     abstract create(data: {

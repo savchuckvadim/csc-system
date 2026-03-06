@@ -3,12 +3,13 @@ import { useMutation } from "@tanstack/react-query";
 
 import {
     MemberRegistrationSiteService,
-    OpenAPI,
     type RegisterMemberDto,
     type RegisterMemberResponseDto,
     type UploadMemberFilesResponseDto,
     type UploadMemberFilesDto,
 } from "@workspace/api-client/generated";
+
+import { configureOpenApiClient, withAccessToken } from "@/modules/shared/api/api";
 
 export interface RegisterFormSubmitData {
     name: string;
@@ -26,10 +27,6 @@ export interface RegisterFormSubmitData {
     documentFirst?: File;
     documentSecond?: File;
     signature: string;
-}
-
-function configureOpenApiClient() {
-    OpenAPI.BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 }
 
 function toBase64(file: File): Promise<string> {
@@ -83,12 +80,9 @@ export const useSubmitRegister = () => {
         mutationFn: async ({ accessToken, data }) => {
             configureOpenApiClient();
             const filesPayload = await mapToUploadMemberFilesDto(data);
-            OpenAPI.TOKEN = accessToken;
-            try {
-                return await MemberRegistrationSiteService.membersAuthUploadFiles(filesPayload);
-            } finally {
-                OpenAPI.TOKEN = undefined;
-            }
+            return withAccessToken(accessToken, () =>
+                MemberRegistrationSiteService.membersAuthUploadFiles(filesPayload)
+            );
         },
     });
 

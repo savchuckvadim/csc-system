@@ -12,6 +12,14 @@ import { PrismaService } from "@common/prisma/prisma.service";
 export class MemberPrismaRepository implements MemberRepository {
     constructor(private readonly prisma: PrismaService) {}
 
+    async findAll(limit: number = 100): Promise<MemberWithRelations[]> {
+        return this.prisma.member.findMany({
+            take: limit,
+            orderBy: { createdAt: "desc" },
+            include: memberWithRelationsInclude,
+        });
+    }
+
     async findById(id: string): Promise<MemberWithRelations | null> {
         return this.prisma.member.findUnique({
             where: { id },

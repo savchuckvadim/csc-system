@@ -6,6 +6,7 @@ import { PassportModule } from "@nestjs/passport";
 
 import { JWT_DEFAULTS, JWT_ENV_KEYS } from "@auth/domain/constants/jwt.constants";
 import { MemberAuthController } from "@members/api/controllers/member-auth.controller";
+import { CrmMembersController } from "@members/api/controllers/crm-members.controller";
 import { MembersAuthController } from "@members/api/controllers/members-auth.controller";
 import { MemberAuthService } from "@members/application/services/member-auth.service";
 import { MemberFilesService } from "@members/application/services/member-files.service";
@@ -108,7 +109,7 @@ import { StorageModule } from "@modules/storage";
             useClass: UserPrismaRepository,
         },
     ],
-    controllers: [MembersAuthController, MemberAuthController],
+    controllers: [MembersAuthController, MemberAuthController, CrmMembersController],
     exports: [MembersService, MemberAuthService, MemberJwtAuthGuard, MemberLocalAuthGuard],
 })
 export class MembersModule {}

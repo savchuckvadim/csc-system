@@ -5,13 +5,14 @@ import { useTranslations } from "next-intl";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
+import { EmployeeAuthenticationCrmService, type EmployeeLoginDto } from "@workspace/api-client/generated";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { Button, FieldInput } from "@workspace/ui";
 
 import { ROUTES } from "@/modules/shared/config/routes";
-import { apiClient } from "@/modules/shared/lib/api";
+import { configureOpenApiClient, setSessionTokens } from "@/modules/shared/api/api";
 import { useLocalizedLink } from "@/modules/shared/lib/use-localized-link";
 
 const loginSchema = z.object({
@@ -34,13 +35,15 @@ export function LoginForm() {
 
     const mutation = useMutation({
         mutationFn: async (data: LoginFormData) => {
-            // TODO: Replace with actual API call
-            const response = await apiClient.post("/auth/login", data);
-            return response.data;
+            configureOpenApiClient();
+            return EmployeeAuthenticationCrmService.employeeAuthLogin(data as EmployeeLoginDto);
         },
-        onSuccess: () => {
-            // TODO: Handle success (redirect, set token, etc.)
-            console.log("Login successful");
+        onSuccess: (response) => {
+            setSessionTokens({
+                accessToken: response.accessToken,
+                refreshToken: response.refreshToken,
+            });
+            window.location.href = localizedLink(ROUTES.CRM_HOME);
         },
         onError: (error) => {
             console.error("Login error:", error);

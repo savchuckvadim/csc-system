@@ -693,8 +693,38 @@ JWT_ACCESS_TOKEN_EXPIRES_IN=15m                  # Время жизни access 
 JWT_REFRESH_TOKEN_EXPIRES_IN=7d                  # Время жизни refresh token
 
 # Database
-DATABASE_URL=mysql://user:password@localhost:3306/database
+DATABASE_URL=postgresql://user:password@localhost:5432/database
+
+# Bootstrap root admin (CRM)
+BOOTSTRAP_ADMIN_ENABLED=true
+BOOTSTRAP_ADMIN_EMAIL=admin@company.com
+BOOTSTRAP_ADMIN_PASSWORD=ChangeMe_StrongPassword
+BOOTSTRAP_ADMIN_NAME=Root
+BOOTSTRAP_ADMIN_FORCE_PASSWORD_RESET=false
 ```
+
+### Bootstrap admin seed
+
+`BOOTSTRAP_ADMIN_ENABLED=true` включает сценарий посева root-admin.  
+Если флаг `false` (или не задан), seed-скрипт ничего не создает и завершается без ошибок.
+
+Команды:
+
+```bash
+cd apps/api
+
+# Только посев root-admin (без миграций)
+pnpm prisma:seed:admin
+
+# Стандартный prisma seed (в проекте он также запускает seed-admin)
+pnpm prisma:seed
+```
+
+Рекомендованный production flow:
+1. `pnpm prisma:migrate:deploy`
+2. `pnpm prisma:seed:admin`
+3. Убедиться, что root-admin может войти в CRM
+4. Выключить `BOOTSTRAP_ADMIN_ENABLED` или удалить bootstrap-пароль из env
 
 ## Схема работы токенов
 

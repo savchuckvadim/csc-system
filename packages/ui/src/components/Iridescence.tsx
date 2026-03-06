@@ -1,4 +1,5 @@
-// @ts-expect-error - ogl types may not be fully typed
+"use client";
+
 import { useEffect, useRef } from "react";
 
 import { Color, Geometry, Mesh, Program, Renderer } from "ogl";
