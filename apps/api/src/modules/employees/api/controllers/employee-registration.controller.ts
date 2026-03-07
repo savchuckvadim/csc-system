@@ -9,7 +9,7 @@ import { EmployeesService } from "@employees/application/services/employees.serv
 
 import { Public } from "@common/decorators/auth/public.decorator";
 import { ApiErrorResponse } from "@common/decorators/response/api-error-response.decorator";
-import { ApiSuccessResponseDecorator } from "@common/decorators/response/api-success-response.decorator";
+import { ApiSuccessResponse } from "@common/decorators/response/api-success-response.decorator";
 
 @ApiTags("Employee Registration (CRM)")
 @Controller("crm/auth/employee")
@@ -23,7 +23,7 @@ export class EmployeeRegistrationController {
     @Post("register")
     @Public()
     @ApiOperation({ summary: "Register new Employee (CRM)" })
-    @ApiSuccessResponseDecorator(EmployeeAuthResponseDto, {
+    @ApiSuccessResponse(EmployeeAuthResponseDto, {
         status: 201,
         description: "Employee registered successfully",
     })

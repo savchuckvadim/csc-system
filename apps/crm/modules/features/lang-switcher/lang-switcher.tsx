@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
 
-import { Check, ChevronDown, Globe } from "lucide-react";
+import { Check, Globe } from "lucide-react";
 
 import { type Locale, localeNames, locales } from "@/modules/shared/config/i18n";
 

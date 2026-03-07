@@ -27,7 +27,7 @@ import { UsersService } from "@users/application/services/users.service";
 
 import { Admin } from "@common/decorators/auth/admin.decorator";
 import { ApiErrorResponse } from "@common/decorators/response/api-error-response.decorator";
-import { ApiSuccessResponseDecorator } from "@common/decorators/response/api-success-response.decorator";
+import { ApiSuccessResponse } from "@common/decorators/response/api-success-response.decorator";
 
 @ApiTags("Users (Admin only)")
 @Controller("users")
@@ -39,7 +39,7 @@ export class UsersController {
 
     @Post()
     @ApiOperation({ summary: "Create a new user" })
-    @ApiSuccessResponseDecorator(UserResponseDto, {
+    @ApiSuccessResponse(UserResponseDto, {
         status: 201,
         description: "User created successfully",
     })
@@ -51,7 +51,7 @@ export class UsersController {
     @Get(":id")
     @ApiOperation({ summary: "Get user by ID" })
     @ApiParam({ name: "id", description: "User ID" })
-    @ApiSuccessResponseDecorator(UserResponseDto, {
+    @ApiSuccessResponse(UserResponseDto, {
         description: "User found",
     })
     @ApiErrorResponse([404])
@@ -62,7 +62,7 @@ export class UsersController {
     @Patch(":id")
     @ApiOperation({ summary: "Update user" })
     @ApiParam({ name: "id", description: "User ID" })
-    @ApiSuccessResponseDecorator(UserResponseDto, {
+    @ApiSuccessResponse(UserResponseDto, {
         description: "User updated successfully",
     })
     @ApiErrorResponse([400, 404])

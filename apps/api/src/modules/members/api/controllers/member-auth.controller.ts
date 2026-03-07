@@ -16,7 +16,7 @@ import { MemberLocalAuthGuard } from "@members/infrastructure/guards/member-loca
 import { CurrentMember } from "@common/decorators/auth/current-member.decorator";
 import { Public } from "@common/decorators/auth/public.decorator";
 import { ApiErrorResponse } from "@common/decorators/response/api-error-response.decorator";
-import { ApiSuccessResponseDecorator } from "@common/decorators/response/api-success-response.decorator";
+import { ApiSuccessResponse } from "@common/decorators/response/api-success-response.decorator";
 
 @ApiTags("Member Authentication (Site)")
 @Controller("lk/auth")
@@ -30,7 +30,7 @@ export class MemberAuthController {
     @Public()
     @UseGuards(MemberLocalAuthGuard)
     @ApiOperation({ summary: "Login Member (Site)" })
-    @ApiSuccessResponseDecorator(AuthResponseDto, {
+    @ApiSuccessResponse(AuthResponseDto, {
         description: "Member logged in successfully",
     })
     @ApiErrorResponse([400, 401])
@@ -43,7 +43,7 @@ export class MemberAuthController {
     @Post("refresh")
     @Public()
     @ApiOperation({ summary: "Refresh access token (Site)" })
-    @ApiSuccessResponseDecorator(RefreshTokenResponseDto, {
+    @ApiSuccessResponse(RefreshTokenResponseDto, {
         description: "Token refreshed successfully",
     })
     @ApiErrorResponse([400, 401])
@@ -54,7 +54,7 @@ export class MemberAuthController {
     @Post("logout")
     @Public()
     @ApiOperation({ summary: "Logout Member (Site)" })
-    @ApiSuccessResponseDecorator(LogoutDto, {
+    @ApiSuccessResponse(LogoutDto, {
         description: "Logged out successfully",
     })
     async logout(@Body() body: { refreshToken: string }): Promise<LogoutDto> {
@@ -65,7 +65,7 @@ export class MemberAuthController {
     @Get("me")
     @UseGuards(MemberJwtAuthGuard)
     @ApiOperation({ summary: "Get current Member (Site)" })
-    @ApiSuccessResponseDecorator(UserMeResponseDto, {
+    @ApiSuccessResponse(UserMeResponseDto, {
         description: "Current Member information",
     })
     @ApiErrorResponse([401])

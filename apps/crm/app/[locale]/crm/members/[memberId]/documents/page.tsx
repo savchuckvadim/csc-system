@@ -6,11 +6,11 @@ import { Button } from "@workspace/ui";
 
 import { ThemedSignatureImage } from "@/modules/entities/member/ui/themed-signature-image";
 import { MemberDocumentEditModal } from "@/modules/features/members/member-document-edit-modal";
+import { getCrmMemberById } from "@/modules/entities/member/api/member.api";
 import {
-    getCrmMemberById,
     getIdentityDocumentPreviewUrl,
     getSignaturePreviewUrl,
-} from "@/modules/entities/member/api/member.api";
+} from "@/modules/entities/member-documents/api/member-documents.api";
 
 export default async function CrmMemberDocumentsPage({
     params,

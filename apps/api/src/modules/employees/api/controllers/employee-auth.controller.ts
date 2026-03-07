@@ -14,7 +14,8 @@ import { EmployeeLocalAuthGuard } from "@employees/infrastructure/guards/employe
 import { CurrentEmployee } from "@common/decorators/auth/current-employee.decorator";
 import { Public } from "@common/decorators/auth/public.decorator";
 import { ApiErrorResponse } from "@common/decorators/response/api-error-response.decorator";
-import { ApiSuccessResponseDecorator } from "@common/decorators/response/api-success-response.decorator";
+import { ApiSuccessResponse } from "@common/decorators/response/api-success-response.decorator";
+import { RefreshTokenDto } from "@modules/auth";
 
 @ApiTags("Employee Authentication (CRM)")
 @Controller("crm/auth")
@@ -25,7 +26,7 @@ export class EmployeeAuthController {
     @Public()
     @UseGuards(EmployeeLocalAuthGuard)
     @ApiOperation({ summary: "Login employee (CRM)" })
-    @ApiSuccessResponseDecorator(EmployeeAuthResponseDto, {
+    @ApiSuccessResponse(EmployeeAuthResponseDto, {
         description: "Employee logged in successfully",
     })
     @ApiErrorResponse([400, 401])
@@ -39,20 +40,20 @@ export class EmployeeAuthController {
     @Post("refresh")
     @Public()
     @ApiOperation({ summary: "Refresh access token (CRM)" })
-    @ApiSuccessResponseDecorator(EmployeeRefreshTokenResponseDto, {
+    @ApiSuccessResponse(EmployeeRefreshTokenResponseDto, {
         description: "Token refreshed successfully",
     })
     @ApiErrorResponse([400, 401])
     async refresh(
-        @Body() body: { refreshToken: string }
+        @Body() dto: RefreshTokenDto
     ): Promise<EmployeeRefreshTokenResponseDto> {
-        return this.employeeAuthService.refreshToken(body.refreshToken);
+        return this.employeeAuthService.refreshToken(dto.refreshToken);
     }
 
     @Post("logout")
     @Public()
     @ApiOperation({ summary: "Logout employee (CRM)" })
-    @ApiSuccessResponseDecorator(EmployeeLogoutResponseDto, {
+    @ApiSuccessResponse(EmployeeLogoutResponseDto, {
         description: "Logged out successfully",
     })
     async logout(@Body() body: { refreshToken: string }): Promise<EmployeeLogoutResponseDto> {
@@ -63,7 +64,7 @@ export class EmployeeAuthController {
     @Get("me")
     @UseGuards(EmployeeJwtAuthGuard)
     @ApiOperation({ summary: "Get current employee (CRM)" })
-    @ApiSuccessResponseDecorator(EmployeeMeResponseDto, {
+    @ApiSuccessResponse(EmployeeMeResponseDto, {
         description: "Current employee information",
     })
     @ApiErrorResponse([401])

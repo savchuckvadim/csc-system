@@ -1,16 +1,17 @@
 "use client";
 
 import { ChangeEvent, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useRouter, usePathname } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
 import { Pencil, Upload } from "lucide-react";
 
 import { Button, FieldInput, SignatureCanvasField } from "@workspace/ui";
 import { Field, FieldContent, FieldLabel } from "@workspace/ui/components/field";
 
-import { updateCrmMemberFiles } from "@/modules/entities/member/api/member.api";
+import { useUpdateCrmMemberFiles } from "@/modules/entities/member-documents/hooks/member-documents.hook";
+import { updateCrmMemberFiles, type UpdateCrmMemberFilesPayload } from "@/modules/entities/member-documents/api/member-documents.api";
 import { ThemedSignatureImage } from "@/modules/entities/member/ui/themed-signature-image";
-import { isCrmApiError } from "@/modules/shared";
+import { isApiErrorWithStatus } from "@/modules/shared";
 
 interface MemberDocumentEditModalProps {
     memberId: string;
@@ -30,8 +31,10 @@ export function MemberDocumentEditModal({
     const t = useTranslations("crm.members");
     const tEditor = useTranslations("crm.members.editor");
     const router = useRouter();
+    const pathname = usePathname();
+    const locale = useLocale();
+    const updateFilesMutation = useUpdateCrmMemberFiles();
     const [isOpen, setIsOpen] = useState(false);
-    const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [documentType, setDocumentType] = useState(initialDocumentType);
     const [mode, setMode] = useState<"upload" | "draw">("upload");
@@ -62,7 +65,8 @@ export function MemberDocumentEditModal({
         setError(null);
 
         try {
-            setIsSaving(true);
+            let payload: UpdateCrmMemberFilesPayload;
+
             if (isSignature) {
                 const signature =
                     mode === "draw"
@@ -76,16 +80,14 @@ export function MemberDocumentEditModal({
                     return;
                 }
 
-                await updateCrmMemberFiles(memberId, {
-                    signature,
-                });
+                payload = { signature };
             } else {
                 if (!file || !side) {
                     setError(tEditor("uploadError"));
                     return;
                 }
 
-                const payload =
+                payload =
                     side === "first"
                         ? {
                               documentType,
@@ -95,23 +97,28 @@ export function MemberDocumentEditModal({
                               documentType,
                               documentSecond: await fileToDataUrl(file),
                           };
-
-                await updateCrmMemberFiles(memberId, payload);
             }
+
+            await updateFilesMutation.mutateAsync({
+                memberId,
+                payload,
+            });
 
             setIsOpen(false);
             setFile(null);
             setFilePreview(null);
             setSignatureDataUrl(null);
+            
+            // Force refresh server components by pushing to the same path
+            // This ensures the documents list is updated immediately
+            router.push(pathname);
             router.refresh();
         } catch (error: unknown) {
-            if (isCrmApiError(error) && error.status === 413) {
+            if (isApiErrorWithStatus(error, 413)) {
                 setError(t("fileTooLarge"));
             } else {
                 setError(tEditor("uploadError"));
             }
-        } finally {
-            setIsSaving(false);
         }
     };
 
@@ -246,8 +253,11 @@ export function MemberDocumentEditModal({
                         )}
 
                         <div className="mt-4">
-                            <Button onClick={handleSave} disabled={isSaving}>
-                                {isSaving ? tEditor("saving") : t("saveDocument")}
+                            <Button
+                                onClick={handleSave}
+                                disabled={updateFilesMutation.isPending}
+                            >
+                                {updateFilesMutation.isPending ? tEditor("saving") : t("saveDocument")}
                             </Button>
                         </div>
                         {error ? <p className="mt-3 text-sm text-destructive">{error}</p> : null}

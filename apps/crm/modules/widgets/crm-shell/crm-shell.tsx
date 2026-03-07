@@ -1,9 +1,7 @@
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-
 import { Button, ThemeToggle } from "@workspace/ui";
-
-import { LangSwitcher } from "@/modules/features/lang-switcher/lang-switcher";
+import { LangSwitcher } from "@/modules/features";
 
 interface CrmShellProps {
     locale: string;

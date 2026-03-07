@@ -16,7 +16,7 @@ import { UploadMemberFilesResponseDto } from "@modules/members/api/dto/upload-me
 import { CurrentMember } from "@common/decorators/auth/current-member.decorator";
 import { Public } from "@common/decorators/auth/public.decorator";
 import { ApiErrorResponse } from "@common/decorators/response/api-error-response.decorator";
-import { ApiSuccessResponseDecorator } from "@common/decorators/response/api-success-response.decorator";
+import { ApiSuccessResponse } from "@common/decorators/response/api-success-response.decorator";
 
 @ApiTags("Member Registration (Site)")
 @Controller("lk/auth/member")
@@ -30,7 +30,7 @@ export class MembersAuthController {
     @Post("check")
     @Public()
     @ApiOperation({ summary: "Check if user exists (for Member registration)" })
-    @ApiSuccessResponseDecorator(CheckUserExistsResponseDto, {
+    @ApiSuccessResponse(CheckUserExistsResponseDto, {
         description: "User existence check result",
     })
     async checkUserExists(@Body() dto: CheckUserExistsDto): Promise<CheckUserExistsResponseDto> {
@@ -40,7 +40,7 @@ export class MembersAuthController {
     @Post("register")
     @Public()
     @ApiOperation({ summary: "Register new Member (Site)" })
-    @ApiSuccessResponseDecorator(RegisterMemberResponseDto, {
+    @ApiSuccessResponse(RegisterMemberResponseDto, {
         status: 201,
         description: "Member registered successfully",
     })
@@ -90,7 +90,7 @@ export class MembersAuthController {
     @Post("files")
     @UseGuards(MemberJwtAuthGuard)
     @ApiOperation({ summary: "Queue member documents/signature upload (Site)" })
-    @ApiSuccessResponseDecorator(UploadMemberFilesResponseDto, {
+    @ApiSuccessResponse(UploadMemberFilesResponseDto, {
         status: 201,
         description: "Member files were queued for asynchronous processing",
     })

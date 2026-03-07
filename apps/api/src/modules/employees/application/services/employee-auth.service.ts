@@ -10,6 +10,7 @@ import { EmployeeRepository } from "@employees/domain/repositories/employee-repo
 import { EmployeeTokenRepository } from "@employees/domain/repositories/employee-token-repository.interface";
 
 import { EmployeesService } from "./employees.service";
+import { EmployeeRefreshTokenResponseDto } from "@modules/employees/api/dto/employee-refresh-token-response.dto";
 
 interface EmployeeJwtPayload {
     sub: string; // employee id
@@ -27,7 +28,7 @@ export class EmployeeAuthService {
         private readonly configService: ConfigService,
         private readonly employeeRepository: EmployeeRepository,
         private readonly employeeTokenRepository: EmployeeTokenRepository
-    ) {}
+    ) { }
 
     /**
      * Вход сотрудника
@@ -75,7 +76,7 @@ export class EmployeeAuthService {
     /**
      * Обновление access token через refresh token
      */
-    async refreshToken(refreshToken: string): Promise<{ accessToken: string }> {
+    async refreshToken(refreshToken: string): Promise<EmployeeRefreshTokenResponseDto> {
         try {
             // Проверяем refresh token в БД через репозиторий
             const tokenRecord = await this.employeeTokenRepository.findByToken(refreshToken);
@@ -92,29 +93,29 @@ export class EmployeeAuthService {
             if (!employee) {
                 throw new UnauthorizedException();
             }
+            return await this.generateTokens(employee);
+            // const payload: EmployeeJwtPayload = {
+            //     sub: employee.id,
+            //     email: employee.email,
+            //     name: employee.name,
+            //     role: employee.role,
+            //     type: "employee",
+            // };
 
-            const payload: EmployeeJwtPayload = {
-                sub: employee.id,
-                email: employee.email,
-                name: employee.name,
-                role: employee.role,
-                type: "employee",
-            };
+            // const jwtSecret = this.configService.get<string>(JWT_ENV_KEYS.SECRET);
+            // const accessTokenExpiresIn: string =
+            //     this.configService.get<string>(JWT_ENV_KEYS.ACCESS_TOKEN_EXPIRES_IN) ||
+            //     JWT_DEFAULTS.ACCESS_TOKEN_EXPIRES_IN;
 
-            const jwtSecret = this.configService.get<string>(JWT_ENV_KEYS.SECRET);
-            const accessTokenExpiresIn: string =
-                this.configService.get<string>(JWT_ENV_KEYS.ACCESS_TOKEN_EXPIRES_IN) ||
-                JWT_DEFAULTS.ACCESS_TOKEN_EXPIRES_IN;
+            // const signOptions = {
+            //     secret: jwtSecret || JWT_DEFAULTS.SECRET,
+            //     expiresIn: accessTokenExpiresIn,
+            // } as { secret: string; expiresIn: string };
 
-            const signOptions = {
-                secret: jwtSecret || JWT_DEFAULTS.SECRET,
-                expiresIn: accessTokenExpiresIn,
-            } as { secret: string; expiresIn: string };
+            // // @ts-expect-error - JWT library type mismatch
+            // const accessToken = await this.jwtService.signAsync(payload, signOptions);
 
-            // @ts-expect-error - JWT library type mismatch
-            const accessToken = await this.jwtService.signAsync(payload, signOptions);
-
-            return { accessToken };
+            // return { accessToken };
         } catch {
             throw new UnauthorizedException("Invalid refresh token");
         }

@@ -13,29 +13,31 @@ import { hash } from "bcrypt";
 
 import { StorageService } from "@modules/storage";
 import { StorageType } from "@storage/domain/enums/storage-type.enum";
+import { CrmMemberFullDto, CrmMemberUpdateDto } from "@modules/members/api/dto/crm-member.dto";
+import { CrmMemberFilesRequestDto } from "@modules/members/api/dto/crm-member-documents.dto";
 
-interface UpdateCrmMemberDto {
-    name?: string;
-    surname?: string;
-    phone?: string;
-    birthday?: string;
-    membershipNumber?: string;
-    address?: string;
-    status?: string;
-    notes?: string;
-    isMedical?: boolean;
-    isMj?: boolean;
-    isRecreation?: boolean;
-    documentType?: string;
-    documentNumber?: string;
-}
+// interface UpdateCrmMemberDto extends CrmMemberUpdateDto  {
+//     name?: string;
+//     surname?: string;
+//     phone?: string;
+//     birthday?: string;
+//     membershipNumber?: string;
+//     address?: string;
+//     status?: string;
+//     notes?: string;
+//     isMedical?: boolean;
+//     isMj?: boolean;
+//     isRecreation?: boolean;
+//     documentType?: string;
+//     documentNumber?: string;
+// }
 
-interface UpdateCrmMemberFilesDto {
-    documentType?: string;
-    documentFirst?: string;
-    documentSecond?: string;
-    signature?: string;
-}
+// interface UpdateCrmMemberFilesDto {
+//     documentType?: string;
+//     documentFirst?: string;
+//     documentSecond?: string;
+//     signature?: string;
+// }
 
 @Injectable()
 export class MembersService {
@@ -49,7 +51,7 @@ export class MembersService {
         private readonly identityDocumentRepository: IdentityDocumentRepository,
         private readonly signatureRepository: SignatureRepository,
         private readonly storageService: StorageService
-    ) {}
+    ) { }
 
     private async hashPassword(password: string): Promise<string> {
         const hashFn = hash as unknown as (value: string, rounds: number) => Promise<string>;
@@ -242,7 +244,7 @@ export class MembersService {
         return this.memberRepository.findAll(limit);
     }
 
-    async updateCrmMember(memberId: string, dto: UpdateCrmMemberDto) {
+    async updateCrmMember(memberId: string, dto: CrmMemberUpdateDto) {
         const member = await this.memberRepository.findById(memberId);
         if (!member) {
             throw new NotFoundException("Member not found");
@@ -261,13 +263,13 @@ export class MembersService {
         }> = {};
 
         if (dto.name !== undefined) updatePayload.name = dto.name;
-        if (dto.surname !== undefined) updatePayload.surname = dto.surname;
-        if (dto.phone !== undefined) updatePayload.phone = dto.phone;
+        if (dto.surname !== undefined && dto.surname !== null) updatePayload.surname = dto.surname;
+        if (dto.phone !== undefined && dto.phone !== null) updatePayload.phone = dto.phone;
         if (dto.birthday !== undefined && dto.birthday) updatePayload.birthday = new Date(dto.birthday);
-        if (dto.membershipNumber !== undefined) updatePayload.membershipNumber = dto.membershipNumber;
-        if (dto.address !== undefined) updatePayload.address = dto.address;
-        if (dto.status !== undefined) updatePayload.status = dto.status;
-        if (dto.notes !== undefined) updatePayload.notes = dto.notes;
+        if (dto.membershipNumber !== undefined && dto.membershipNumber !== null) updatePayload.membershipNumber = dto.membershipNumber;
+        if (dto.address !== undefined && dto.address !== null) updatePayload.address = dto.address;
+        if (dto.status !== undefined && dto.status !== null) updatePayload.status = dto.status;
+        if (dto.notes !== undefined && dto.notes !== null) updatePayload.notes = dto.notes;
 
         if (Object.keys(updatePayload).length > 0) {
             await this.memberRepository.update(memberId, updatePayload);
@@ -293,7 +295,7 @@ export class MembersService {
         return this.memberRepository.findById(memberId);
     }
 
-    async updateCrmMemberFiles(memberId: string, dto: UpdateCrmMemberFilesDto) {
+    async updateCrmMemberFiles(memberId: string, dto: CrmMemberFilesRequestDto): Promise<CrmMemberFullDto> {
         const member = await this.memberRepository.findById(memberId);
         if (!member) {
             throw new NotFoundException("Member not found");
@@ -334,7 +336,39 @@ export class MembersService {
             await this.signatureRepository.upsertByMemberId(memberId, { storagePath: signaturePath });
         }
 
-        return this.memberRepository.findById(memberId);
+        const result = await this.memberRepository.findById(memberId);
+        return {
+            ...result,
+            identityDocuments: result?.identityDocuments.map((item) => ({
+                id: item.id,
+                type: item.type,
+                side: item.side,
+                storagePath: item.storagePath,
+                createdAt: item.createdAt.toISOString(),
+            })) ?? [],
+            signature: result?.signature ? {
+                id: result.signature.id,
+                storagePath: result.signature.storagePath,
+                createdAt: result.signature.createdAt.toISOString(),
+            } : null,
+            mjStatuses: result?.memberMjStatuses.map((item) => ({
+                id: item.mjStatus.id,
+                code: item.mjStatus.code,
+                name: item.mjStatus.name,
+            })) ?? [],
+            documents: result?.memberDocuments.map((item) => ({
+                id: item.id,
+                type: item.document.type,
+                name: item.document.name,
+                number: item.number,
+                createdAt: item.createdAt.toISOString(),
+            })) ?? [],
+            email: result?.user.email ?? "",
+            emailConfirmed: false,
+            updatedAt: result?.updatedAt?.toISOString() ?? "",
+            createdAt: result?.createdAt?.toISOString() ?? "",
+
+        } as CrmMemberFullDto;
     }
 
     private async savePrivateDataUrl(dataUrl: string, fileName: string, memberId: string): Promise<string> {

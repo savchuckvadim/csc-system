@@ -1,13 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Pencil } from "lucide-react";
 
 import { Button, FieldInput } from "@workspace/ui";
 
-import { CrmMemberDetails, updateCrmMember } from "@/modules/entities/member/api/member.api";
+import { CrmMemberDetails } from "@/modules/entities/member/api/member.api";
+import { useUpdateCrmMember } from "@/modules/entities/member/hooks/member.hook";
 
 interface MemberProfileEditModalProps {
     member: CrmMemberDetails;
@@ -16,8 +17,9 @@ interface MemberProfileEditModalProps {
 export function MemberProfileEditModal({ member }: MemberProfileEditModalProps) {
     const t = useTranslations("crm.members.editor");
     const router = useRouter();
+    const pathname = usePathname();
+    const updateMemberMutation = useUpdateCrmMember();
     const [isOpen, setIsOpen] = useState(false);
-    const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const initialStatuses = useMemo(
@@ -45,29 +47,31 @@ export function MemberProfileEditModal({ member }: MemberProfileEditModalProps) 
 
     const handleSave = async () => {
         setError(null);
-        setIsSaving(true);
         try {
-            await updateCrmMember(member.id, {
-                name: profileForm.name,
-                surname: profileForm.surname || undefined,
-                phone: profileForm.phone || undefined,
-                birthday: profileForm.birthday || undefined,
-                membershipNumber: profileForm.membershipNumber || undefined,
-                address: profileForm.address || undefined,
-                status: profileForm.status || undefined,
-                notes: profileForm.notes || undefined,
-                isMedical: profileForm.isMedical,
-                isMj: profileForm.isMj,
-                isRecreation: profileForm.isRecreation,
-                documentType: profileForm.documentType || undefined,
-                documentNumber: profileForm.documentNumber || undefined,
+            await updateMemberMutation.mutateAsync({
+                memberId: member.id,
+                payload: {
+                    name: profileForm.name,
+                    surname: profileForm.surname || undefined,
+                    phone: profileForm.phone || undefined,
+                    birthday: profileForm.birthday || undefined,
+                    membershipNumber: profileForm.membershipNumber || undefined,
+                    address: profileForm.address || undefined,
+                    status: profileForm.status || undefined,
+                    notes: profileForm.notes || undefined,
+                    isMedical: profileForm.isMedical,
+                    isMj: profileForm.isMj,
+                    isRecreation: profileForm.isRecreation,
+                    documentType: profileForm.documentType || undefined,
+                    documentNumber: profileForm.documentNumber || undefined,
+                },
             });
             setIsOpen(false);
+            // Force refresh server components by pushing to the same path
+            router.push(pathname);
             router.refresh();
         } catch {
             setError(t("saveError"));
-        } finally {
-            setIsSaving(false);
         }
     };
 
@@ -202,8 +206,8 @@ export function MemberProfileEditModal({ member }: MemberProfileEditModalProps) 
                         </div>
 
                         <div className="mt-4 flex gap-2">
-                            <Button onClick={handleSave} disabled={isSaving}>
-                                {isSaving ? t("saving") : t("saveProfile")}
+                            <Button onClick={handleSave} disabled={updateMemberMutation.isPending}>
+                                {updateMemberMutation.isPending ? t("saving") : t("saveProfile")}
                             </Button>
                         </div>
 
