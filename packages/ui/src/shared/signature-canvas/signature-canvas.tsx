@@ -101,7 +101,26 @@ export function SignatureCanvasField({
 
     useEffect(() => {
         if (canvasRef.current) {
-            setIsEmpty(canvasRef.current.isEmpty());
+            const isEmpty = canvasRef.current.isEmpty();
+            setIsEmpty(isEmpty);
+            // If canvas has content but no value is saved yet, mark as unsaved
+            if (!isEmpty && !value) {
+                setHasUnsavedContent(true);
+            } else if (isEmpty) {
+                setHasUnsavedContent(false);
+            }
+        }
+    }, [value]);
+
+    // Periodically check if canvas has content while drawing
+    useEffect(() => {
+        if (!value && canvasRef.current) {
+            const interval = setInterval(() => {
+                if (canvasRef.current && !canvasRef.current.isEmpty()) {
+                    setHasUnsavedContent(true);
+                }
+            }, 100);
+            return () => clearInterval(interval);
         }
     }, [value]);
 
@@ -185,7 +204,6 @@ export function SignatureCanvasField({
                             className: "w-full h-48 cursor-crosshair rounded-xl",
                         }}
                         onEnd={handleEnd}
-                        onBegin={() => setHasUnsavedContent(true)}
                     />
                 )}
                 {value && (
