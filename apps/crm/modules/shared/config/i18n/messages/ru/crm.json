@@ -66,6 +66,7 @@
             "uploadImage": "Загрузить изображение",
             "drawSignature": "Нарисовать подпись",
             "signaturePlaceholder": "Распишитесь в поле",
+            "preview": "Предпросмотр",
             "saveDocument": "Сохранить изменения",
             "editor": {
                 "title": "Редактирование профиля члена",

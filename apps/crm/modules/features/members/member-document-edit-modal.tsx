@@ -9,6 +9,7 @@ import { Button, FieldInput, SignatureCanvasField } from "@workspace/ui";
 import { Field, FieldContent, FieldLabel } from "@workspace/ui/components/field";
 
 import { updateCrmMemberFiles } from "@/modules/entities/member/api/member.api";
+import { ThemedSignatureImage } from "@/modules/entities/member/ui/themed-signature-image";
 import { isCrmApiError } from "@/modules/shared";
 
 interface MemberDocumentEditModalProps {
@@ -205,10 +206,10 @@ export function MemberDocumentEditModal({
                                         <FieldLabel>{t("newFile")}</FieldLabel>
                                         <FieldContent>
                                             <div className="mb-2 rounded-md border bg-muted/30 p-2">
-                                                <img
+                                                <ThemedSignatureImage
                                                     src={filePreview ?? currentPreviewUrl}
                                                     alt="signature-preview"
-                                                    className="h-28 w-full object-contain dark:invert"
+                                                    className="h-28 w-full object-contain"
                                                 />
                                             </div>
                                             <input

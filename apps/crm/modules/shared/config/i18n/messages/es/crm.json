@@ -66,6 +66,7 @@
             "uploadImage": "Subir imagen",
             "drawSignature": "Dibujar firma",
             "signaturePlaceholder": "Dibuja la firma en el área",
+            "preview": "Vista previa",
             "saveDocument": "Guardar cambios",
             "editor": {
                 "title": "Editar perfil del miembro",

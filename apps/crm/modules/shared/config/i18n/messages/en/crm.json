@@ -66,6 +66,7 @@
             "uploadImage": "Upload image",
             "drawSignature": "Draw signature",
             "signaturePlaceholder": "Draw signature in the area",
+            "preview": "Preview",
             "saveDocument": "Save changes",
             "editor": {
                 "title": "Edit member profile",

@@ -9,6 +9,74 @@ import { SignatureCanvas } from "react-signature-canvas";
 import { Button } from "@workspace/ui/components/button";
 import { cn } from "@workspace/ui/lib/utils";
 
+// Helper component for themed signature preview
+function ThemedSignaturePreview({ src, className }: { src: string; className?: string }) {
+    const { resolvedTheme } = useTheme();
+    const isDark = resolvedTheme === "dark";
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const [processedSrc, setProcessedSrc] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!isDark || !canvasRef.current) {
+            setProcessedSrc(null);
+            return;
+        }
+
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => {
+            const canvas = canvasRef.current;
+            if (!canvas) return;
+
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext("2d");
+            if (!ctx) return;
+
+            ctx.drawImage(img, 0, 0);
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+
+            // Invert only RGB channels, preserve alpha
+            for (let i = 0; i < data.length; i += 4) {
+                const alpha = data[i + 3];
+                if (alpha !== undefined && alpha > 0) {
+                    const r = data[i];
+                    const g = data[i + 1];
+                    const b = data[i + 2];
+                    if (r !== undefined && g !== undefined && b !== undefined) {
+                        data[i] = 255 - r;
+                        data[i + 1] = 255 - g;
+                        data[i + 2] = 255 - b;
+                    }
+                }
+            }
+
+            ctx.putImageData(imageData, 0, 0);
+            setProcessedSrc(canvas.toDataURL("image/png"));
+        };
+        img.onerror = () => {
+            setProcessedSrc(null);
+        };
+        img.src = src;
+    }, [src, isDark]);
+
+    if (!isDark) {
+        return <img src={src} alt="signature" className={className} />;
+    }
+
+    return (
+        <>
+            <canvas ref={canvasRef} className="hidden" />
+            {processedSrc ? (
+                <img src={processedSrc} alt="signature" className={className} />
+            ) : (
+                <img src={src} alt="signature" className={className} />
+            )}
+        </>
+    );
+}
+
 export interface SignatureCanvasProps {
     value?: string;
     onChange?: (value: string | null) => void;
@@ -40,9 +108,10 @@ export function SignatureCanvasField({
     const handleClear = () => {
         if (canvasRef.current) {
             canvasRef.current.clear();
-            setIsEmpty(true);
-            onChange?.(null);
         }
+        setIsEmpty(true);
+        setHasUnsavedContent(false);
+        onChange?.(null);
     };
 
     const handleSave = () => {
@@ -68,23 +137,29 @@ export function SignatureCanvasField({
                 const hasStroke = alpha > 0;
 
                 // Store signature in canonical format independent from UI theme:
-                // black strokes with transparent background.
-                normalizedData.data[i] = 0;
-                normalizedData.data[i + 1] = 0;
-                normalizedData.data[i + 2] = 0;
-                normalizedData.data[i + 3] = hasStroke ? alpha : 0;
+                // black strokes (RGB=0,0,0) with fully opaque alpha (255) on transparent background.
+                // This ensures proper inversion in dark theme without affecting transparency.
+                normalizedData.data[i] = 0; // R
+                normalizedData.data[i + 1] = 0; // G
+                normalizedData.data[i + 2] = 0; // B
+                normalizedData.data[i + 3] = hasStroke ? 255 : 0; // Always fully opaque for strokes
             }
 
             normalizedContext.putImageData(normalizedData, 0, 0);
             const dataURL = normalizedCanvas.toDataURL("image/png");
             setIsEmpty(false);
+            setHasUnsavedContent(false);
             onChange?.(dataURL);
         }
     };
 
+    // Track if canvas has content but hasn't been saved yet
+    const [hasUnsavedContent, setHasUnsavedContent] = useState(false);
+
     const handleEnd = () => {
+        // Just mark that there's content, don't save automatically
         if (canvasRef.current && !canvasRef.current.isEmpty()) {
-            handleSave();
+            setHasUnsavedContent(true);
         }
     };
 
@@ -102,17 +177,28 @@ export function SignatureCanvasField({
                         {placeholder}
                     </span>
                 )}
-                <SignatureCanvas
-                    ref={canvasRef}
-                    penColor={effectivePenColor}
-                    canvasProps={{
-                        className: "w-full h-48 cursor-crosshair rounded-xl",
-                    }}
-                    onEnd={handleEnd}
-                />
+                {!value && (
+                    <SignatureCanvas
+                        ref={canvasRef}
+                        penColor={effectivePenColor}
+                        canvasProps={{
+                            className: "w-full h-48 cursor-crosshair rounded-xl",
+                        }}
+                        onEnd={handleEnd}
+                        onBegin={() => setHasUnsavedContent(true)}
+                    />
+                )}
                 {value && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-background/80 rounded-xl">
-                        <Check className="size-8 text-green-500" />
+                    <div className="flex items-center justify-center w-full h-48 rounded-xl overflow-hidden">
+                        <div className="relative flex items-center justify-center w-full h-full p-4">
+                            <ThemedSignaturePreview
+                                src={value}
+                                className="max-w-full max-h-full object-contain"
+                            />
+                            <div className="absolute top-2 right-2 bg-green-500 rounded-full p-1">
+                                <Check className="size-4 text-white" />
+                            </div>
+                        </div>
                     </div>
                 )}
             </div>
@@ -123,11 +209,12 @@ export function SignatureCanvasField({
                     size="sm"
                     onClick={handleClear}
                     className="flex-1"
+                    disabled={isEmpty && !hasUnsavedContent}
                 >
                     <X className="mr-2 size-4" />
                     Clear
                 </Button>
-                {/* {isEmpty && (
+                {hasUnsavedContent && !value && (
                     <Button
                         type="button"
                         variant="default"
@@ -138,7 +225,7 @@ export function SignatureCanvasField({
                         <Check className="mr-2 size-4" />
                         Save
                     </Button>
-                )} */}
+                )}
             </div>
         </div>
     );
